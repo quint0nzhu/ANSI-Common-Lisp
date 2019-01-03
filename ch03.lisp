@@ -52,3 +52,23 @@
       (and (consp x)
            (proper-list? (cdr x)))))
 
+(defun new-paths (path node net);;每次入队列的不是相邻结点而是由开始节点到这个相邻结点的路径
+  (mapcar #'(lambda (n)
+              (cons n path))
+          (cdr (assoc node net))))
+
+(defun bfs (end queue net);;广度优先搜索算法
+  (if (null queue)
+      nil
+      (let ((path (car queue)))
+        (let ((node (car path)))
+          (if (eql node end)
+              (reverse path)
+              (bfs end
+                   (append (cdr queue)
+                           (new-paths path node net))
+                   net))))))
+
+(defun shortest-path (start end net);;找权重均为1的有向图的最短路径算法，等价于图的广度优先搜索算法
+  (bfs end (list (list start)) net))
+
