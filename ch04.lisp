@@ -117,3 +117,50 @@
   (and bst
        (or (bst-max (node-r bst)) bst)))
 
+(defun bst-remove-min (bst);;删除二叉搜索树中的最小节点
+  (if (null (node-l bst))
+      (node-r bst)
+      (make-node :elt (node-elt bst)
+                 :l (bst-remove-min (node-l bst))
+                 :r (node-r bst))))
+
+(defun bst-remove-max (bst);;删除二叉搜索树中的最大节点
+  (if (null (node-r bst))
+      (node-l bst)
+      (make-node :elt (node-elt bst)
+                 :l (node-l bst)
+                 :r (bst-remove-max (node-r bst)))))
+
+(defun percolate (bst);;二叉搜索树删除算法中当找到要删除节点后，具体删除节点的算法
+  (let ((l (node-l bst)) (r (node-r bst)))
+    (cond ((null l) r)
+          ((null r) l)
+          (t (if (zerop (random 2));;如果被删除节点有左右节点，则随机选择一个子节点
+                 (make-node :elt (node-elt (bst-max l));;选左子树中最大值作为新根节点
+                            :r r
+                            :l (bst-remove-max l))
+                 (make-node :elt (node-elt (bst-min r));;选右子树中最小值作为新根节点
+                            :r (bst-remove-min r)
+                            :l l))))))
+
+(defun bst-remove (obj bst <);;二叉搜索树的删除节点算法
+  (if (null bst)
+      nil
+      (let ((elt (node-elt bst)))
+        (if (eql obj elt)
+            (percolate bst)
+            (if (funcall < obj elt)
+                (make-node
+                 :elt elt
+                 :l (bst-remove obj (node-l bst) <)
+                 :r (node-r bst))
+                (make-node
+                 :elt elt
+                 :r (bst-remove obj (node-r bst) <)
+                 :l (node-l bst)))))))
+
+(defun bst-traverse (fn bst);;二叉搜索树的遍历算法
+  (when bst
+    (bst-traverse fn (node-l bst))
+    (funcall fn (node-elt bst))
+    (bst-traverse fn (node-r bst))))
