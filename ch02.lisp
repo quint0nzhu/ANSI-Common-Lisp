@@ -13,12 +13,12 @@
         val
         (ask-number))))
 
-(defun show-squares (start end)
+(defun show-squares (start end);;打印从start到end为止的数的平方的迭代算法
   (do ((i start (+ i 1)))
       ((> i end) 'done)
     (format t "~A ~A~%" i (* i i))))
 
-(defun show-squares-r (i end)
+(defun show-squares-r (i end);;打印从start到end为止的数的平方的递归算法
   (if (> i end)
       'done
       (progn
