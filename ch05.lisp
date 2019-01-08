@@ -10,3 +10,14 @@
             (setf accum (+ (* accum 10) i))
             (return-from read-integer nil))))
     accum))
+
+(defun leap-year ();;判断系统年份是否为闰年，本例假定总是闰年
+  t)
+
+(defun month-length (mon);;返回一个月的天数
+  (case mon
+    ((jan mar may jul aug oct dec) 31)
+    ((apr jun sept nov) 30)
+    (feb (if (leap-year) 29 28))
+    (otherwise "unknown month")))
+
