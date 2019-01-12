@@ -21,3 +21,13 @@
     (feb (if (leap-year) 29 28))
     (otherwise "unknown month")))
 
+(defun show-squares (start end)
+  (do ((i start (+ i 1)))
+      ((> i end) 'done)
+    (format t "~A ~A~%" i (* i i))))
+
+(defun factorial (n)
+  (do ((j n (- j 1))
+       (f 1 (* j f)))
+      ((= j 0) f)))
+
