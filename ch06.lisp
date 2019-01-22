@@ -20,3 +20,38 @@
 (defun philosoph-fun (thing &optional (property 'fun));;也可以设定缺省参数
   (list thing 'is property))
 
+(defun our-adjoin (obj lst &rest args);;自定义的adjoin，member的参数与adjoin一样，所以用args把剩余的参数都传进来
+  (if (apply #'member obj lst args)
+      lst
+      (cons obj lst)))
+
+(defun single? (lst);;判断参数是否为一个只有一个元素的列表
+  (and (consp lst) (null (cdr lst))))
+
+(defun append1 (lst obj);;在列表最后追加一个元素
+  (append lst (list obj)))
+
+(defun map-int (fn n);;用一个函数作用于0至n-1,将结果形成一个列表并返回
+  (let ((acc nil))
+    (dotimes (i n)
+      (push (funcall fn i) acc))
+    (nreverse acc)))
+
+(defun filter (fn lst);;用一个函数作用于列表lst，将非nil结果形成一个列表并返回
+  (let ((acc nil))
+    (dolist (x lst)
+      (let ((val (funcall fn x)))
+        (if val (push val acc))))
+    (nreverse acc)))
+
+(defun most (fn lst);;根据函数fn作用于lst中的元素后，返回结果为最大的元素和结果
+  (if (null lst)
+      (values nil nil)
+      (let* ((wins (car lst))
+             (max (funcall fn wins)))
+        (dolist (obj (cdr lst))
+          (let ((score (funcall fn obj)))
+            (when (> score max)
+              (setf wins obj
+                    max score))))
+        (values wins max))))
