@@ -74,3 +74,13 @@
 (defun make-adder (n);;每次调用返回一个闭包，注意不光是函数，还有一个环境，所以是闭包
   #'(lambda (x)
       (+ x n)))
+
+(let ((counter 0));;多个闭包共享一个变量
+  (defun reset ()
+    (setf counter 0))
+  (defun stamp ()
+    (setf counter (+ counter 1))))
+
+(defun our-complement (f);;取反谓词
+  #'(lambda (&rest args)
+      (not (apply f args))))
