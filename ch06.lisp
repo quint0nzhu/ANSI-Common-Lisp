@@ -55,3 +55,22 @@
               (setf wins obj
                     max score))))
         (values wins max))))
+
+(defun combiner (x);;根据参数类型确定调用哪个函数
+  (typecase x
+    (number #'+)
+    (list #'append)
+    (t #'list)))
+
+(defun combine (&rest args);;接受任何类型参数，并根据参数类型调用相关函数
+  (apply (combiner (car args))
+         args))
+
+(defun add-to-list (num lst);;对列表中的每个元素加一个数，并返回原列表
+  (mapcar #'(lambda (x)
+              (+ x num))
+          lst))
+
+(defun make-adder (n);;每次调用返回一个闭包，注意不光是函数，还有一个环境，所以是闭包
+  #'(lambda (x)
+      (+ x n)))
