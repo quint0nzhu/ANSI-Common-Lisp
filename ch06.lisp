@@ -84,3 +84,46 @@
 (defun our-complement (f);;取反谓词
   #'(lambda (&rest args)
       (not (apply f args))))
+
+(defun compose (&rest fns);;接受一个或多个函数，返回一个依序将其参数应用的新函数
+  (destructuring-bind (fn1 . rest) (reverse fns)
+    #'(lambda (&rest args)
+        (reduce #'(lambda (v f) (funcall f v))
+                rest
+                :initial-value (apply fn1 args)))))
+
+(defun disjoin (fn &rest fns);;接受一个或多个函数，当任一函数返回真时，返回真
+  (if (null fns)
+      fn
+      (let ((disj (apply #'disjoin fns)))
+        #'(lambda (&rest args)
+            (or (apply fn args) (apply disj args))))))
+
+(defun conjoin (fn &rest fns);;接受一个或多个函数，当所有函数返回真时，返回真
+  (if (null fns)
+      fn
+      (let ((conj (apply #'conjoin fns)))
+        #'(lambda (&rest args)
+            (and (apply fn args) (apply conj args))))))
+
+(defun curry (fn &rest args);;返回一个期望剩余参数的新函数，本函数参数在左，剩余参数在右
+  #'(lambda (&rest args2)
+      (apply fn (append args args2))))
+
+(defun rcurry (fn &rest args);;返回一个期望剩余参数的新函数，本函数参数在右，剩余参数在左
+  #'(lambda (&rest args2)
+      (apply fn (append args2 args))))
+
+(defun always (x) #'(lambda (&rest args) x));;接受一个参数并返回原封不动返回此参数的函数
+
+(defun fibr (n);;斐波那契数列递归版本
+  (if (<= n 1)
+      1
+      (+ (fibr (- n 1))
+         (fibr (- n 2)))))
+
+(defun fibi (n);;婓波那契数列迭代版本
+  (do ((i n (- i 1))
+       (f1 1 (+ f1 f2))
+       (f2 1 f1))
+      ((<= i 1) f1)))
