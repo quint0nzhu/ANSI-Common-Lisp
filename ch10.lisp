@@ -55,3 +55,43 @@
 
 (defmacro cah (lst) `(car ,lst));;car的同义词
 
+(defmacro incf-wrong (x &optional (y 1));;一个错误的incf实现，存在多重求值的问题
+  `(setf ,x (+ ,x ,y)))
+
+(define-modify-macro incf-right (&optional (y 1)) +);;解决了上一版的多重求值的问题
+
+(define-modify-macro append1f (val);;另一个版本的将元素推至列表尾端的函数
+  (lambda (lst val) (append lst (list val))))
+
+(defmacro for (var start stop &body body);;for循环，底层用do循环实现
+  (let ((gstop (gensym)))
+    `(do ((,var ,start (1+ ,var))
+          (,gstop ,stop))
+         ((> ,var ,gstop))
+       ,@body)))
+
+(defmacro in (obj &rest choices);;判断obj是否是choices中的任一个
+  (let ((insym (gensym)))
+    `(let ((,insym ,obj))
+       (or ,@(mapcar #'(lambda (c) `(eql ,insym ,c))
+                     choices)))))
+
+(defmacro random-choice (&rest exprs);;随机选择exprs中任一个项目求值
+  `(case (random ,(length exprs))
+     ,@(let ((key -1))
+         (mapcar #'(lambda (expr)
+                     `(,(incf key) ,expr))
+                 exprs))))
+
+(defmacro avg (&rest args);;计算args参数列表的平均值
+  `(/ (+ ,@args) ,(length args)))
+
+(defmacro with-gensyms (syms &body body);;可以同时gensym几个变量
+  `(let ,(mapcar #'(lambda (s)
+                     `(,s (gensym)))
+          syms)
+     ,@body))
+
+(defmacro aif (test then &optional else);;使用变量it来引用到一个条件式里的测试参数所返回的值，会有变量捕捉的问题
+  `(let ((it ,test))
+     (if it ,then ,else)))
