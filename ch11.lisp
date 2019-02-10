@@ -92,3 +92,65 @@
 
 (defmethod combine ((x (eql 'powder)) (y (eql 'spark)));;此方法特化情况与上面的方法是一样的，所以覆盖了上一个方法
   'kaboom)
+
+(defclass speaker ();;定义一个空类别
+  ())
+
+(defmethod speak ((s speaker) string);;speaker的一个主要的方法
+  (format t "~A" string))
+
+(defclass intellectual (speaker);;有智慧的speaker
+  ())
+
+(defmethod speak :before ((i intellectual) string);;调用主方法speak之前，先调用这个方法
+  (princ "Perhaps "))
+
+(defmethod speak :after ((i intellectual) string);;调用主方法speak之后，再调用这个方法
+  (princ " in some sense"))
+
+(defmethod speak :before ((s speaker) string);;为基类写的:before方法
+  (princ "I think "))
+
+(defclass courtier (speaker);;另一个从speaker继承的类别，用来验证:around方法
+  ())
+
+(defmethod speak :around ((c courtier) string);;先调用这个方法，再调用其他方法
+  (format t "Does the King believe that ~A?" string)
+  (if (eql (read) 'yes)
+      (if (next-method-p)
+          (call-next-method))
+      (format t "Indeed, it is a preposterous idea. ~%"))
+  'bow)
+
+(defgeneric price (x);;使+方法组合
+  (:method-combination +))
+
+(defclass jacket ();;夹克类别
+  ())
+
+(defclass trousers ();;裤子类别
+  ())
+
+(defclass suit (jacket trousers);;正装类别，继承自夹克和裤子类别
+  ())
+
+(defmethod price + ((jk jacket));;待组合的方法，取得夹克的价格
+  350)
+
+(defmethod price + ((tr trousers));;待组合的方法，取得裤子的价格
+  200)
+
+(defpackage "CTR";;定义CTR包，只输出COUNTER，INCREMENT，CLEAR三个方法
+  (:use "COMMON-LISP")
+  (:export "COUNTER" "INCREMENT" "CLEAR"))
+
+(in-package ctr);;使用CTR包
+
+(defclass counter ();;定义一个计数器类别
+  ((state :initform 0)))
+
+(defmethod increment ((c counter));;计数器加一方法
+  (incf (slot-value c 'state)))
+
+(defmethod clear ((c counter));;计数器归零方法
+  (setf (slot-value c 'state) 0))
