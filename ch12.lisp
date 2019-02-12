@@ -220,15 +220,15 @@
                 (setf (node-r bst) (bst-delete obj (node-r bst) <)))
             bst))))
 
-(defstruct (dl (:print-function print-dl))
+(defstruct (dl (:print-function print-dl));;双向链表节点
   prev data next)
 
-(defun dl->list (lst)
+(defun dl->list (lst);;由双向链表生成普通的列表
   (if (dl-p lst)
-      (cons (dl-data ls) (dl->list (dl-next lst)))
+      (cons (dl-data lst) (dl->list (dl-next lst)))
       lst))
 
-(defun dl-insert (x lst)
+(defun dl-insert (x lst);;向链表中插入一个节点
   (let ((elt (make-dl :data x :next lst)))
     (when (dl-p lst)
       (if (dl-prev lst)
@@ -237,17 +237,29 @@
       (setf (dl-prev lst) elt))
     elt))
 
-(defun dl-list (&rest args)
+(defun dl-list (&rest args);;把参数依次插入双向链表，由后向前顺序插入
   (reduce #'dl-insert args
           :from-end t :initial-value nil))
 
-(defun dl-remove (lst)
+(defun dl-remove (lst);;从双向链表中删除一个节点
   (if (dl-prev lst)
       (setf (dl-next (dl-prev lst)) (dl-next lst)))
   (if (dl-next lst)
       (setf (dl-prev (dl-next lst)) (dl-prev lst)))
   (dl-next lst))
 
-(defun print-dl (dl stream depth)
+(defun print-dl (dl stream depth);;打印出双向链表中的节点
   (declare (ignore depth))
   (format stream "#<DL ~A>" (dl->list dl)))
+
+(defun circular (lst);;将一个普通的非空列表转换成一个环状列表，这种环状列表叫cdr-circular
+  (setf (cdr (last lst)) lst))
+
+(defun arith-op (x);;判断x是否为一个算术运算符，不安全，返回列表的一部分，可以进一步被修改
+  (member x '(+ - * /)))
+
+(defun arith-op1 (x);;判断x是否为一个算术运算符，每次返回一个新列表，安全但不高效
+  (member x (list '+ '- '* '/)))
+
+(defun arith-op2 (x);;判断x是否为一个算术运算符，安全高效
+  (find x '(+ - * /)))
