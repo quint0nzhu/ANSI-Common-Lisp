@@ -39,3 +39,30 @@
                                           (dotimes (i (+ (read stream t nil t) 1))
                                             (push i lst))
                                           (nreverse lst)))))
+
+(set-macro-character #\} (get-macro-character #\)));;定义#{x y}作为返回介于x与y之间的整数列表，包含x与y
+(set-dispatch-macro-character #\# #\{
+                              #'(lambda (stream char1 char2)
+                                  (let ((accum nil)
+                                        (pair (read-delimited-list #\} stream t)))
+                                    (do ((i (car pair) (+ i 1)))
+                                        ((> i (cadr pair))
+                                         (list 'quote (nreverse accum)))
+                                      (push i accum)))))
+
+(defun even/odd (ns);;接受一个数字的列表并返回偶数与奇数列表
+  (loop for n in ns
+        if (evenp n)
+          collect n into evens
+        else collect n into odds
+        finally (return (values evens odds))))
+
+(defun sum (n);;求1到n的累加和
+  (loop for x from 1 to n
+        sum x))
+
+(defun user-input (prompt);;等待用户输入一个表达式，在输入有语法错误时不会中断执行
+  (format t prompt)
+  (let ((str (read-line)))
+    (or (ignore-errors (read-from-string str))
+        nil)))
