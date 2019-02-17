@@ -31,18 +31,18 @@
   `(length (push (cons (cdr ',con) ',ant)
                  (gethash (car ',con) *rules*))))
 
-(defun vars-in (expr)
+(defun vars-in (expr);;返回expr中的带？的变量列表
   (if (atom expr)
       (if (var? expr) (list expr))
       (union (vars-in (car expr))
              (vars-in (cdr expr)))))
 
-(defun change-vars (r)
+(defun change-vars (r);;将变量列表中的变量变换成gensym生成的唯一的变量
   (sublis (mapcar #'(lambda (v) (cons v (gensym "?")))
                   (vars-in r))
           r))
 
-(defun prove-simple (pred args binds)
+(defun prove-simple (pred args binds);;不包含与、或、非等逻辑运算的简单证明
   (mapcan #'(lambda (r)
               (multiple-value-bind (b2 yes)
                   (match args (car r)
@@ -54,24 +54,32 @@
           (mapcar #'change-vars
                   (gethash pred *rules*))))
 
-(defun prove-and (clauses binds)
+(defun prove-and (clauses binds);;包含and的证明过程
   (if (null clauses)
       (list binds)
       (mapcan #'(lambda (b)
                   (prove (car clauses) b))
               (prove-and (cdr clauses) binds))))
 
-(defun prove-or (clauses binds)
+(defun prove-or (clauses binds);;包含or的证明过程
   (mapcan #'(lambda (c) (prove c binds))
           clauses))
 
-(defun prove-not (clause binds)
+(defun prove-not (clause binds);;包含not的证明过程
   (unless (prove clause binds)
     (list binds)))
 
-(defun prove (expr &optional binds)
+(defun prove (expr &optional binds);;证明过程，分为简单证明过程和包含与、或、非等逻辑运算的复杂证明过程
   (case (car expr)
     (and (prove-and (reverse (cdr expr)) binds))
     (or (prove-or (cdr expr) binds))
     (not (prove-not (cadr expr) binds))
     (t (prove-simple (car expr) (cdr expr) binds))))
+
+(defmacro with-answer (query &body body);;对绑定进行解析，使之变得易读
+  (let ((binds (gensym)))
+    `(dolist (,binds (prove ',query))
+       (let ,(mapcar #'(lambda (v)
+                         `(,v (binding ',v ,binds)))
+                     (vars-in query))
+         ,@body))))
