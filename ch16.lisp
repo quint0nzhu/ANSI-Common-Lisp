@@ -84,3 +84,72 @@
 
 (defun defsite (&rest sections);;生成一个网站
   (setf *sections* sections))
+
+(defconstant contents "contents");;用作contents页面的标题
+(defconstant index "index");;用作index页面的标题
+
+(defun gen-contents (&optional (sections *sections*));;打开一个HTML文件，生成标题和链接列表
+  (page contents contents
+        (with ol
+              (dolist (s sections)
+                (link-item (section-id s) (section-title s))
+                (brs 2))
+              (link-item index (string-capitalize index)))))
+
+(defun title< (x y);;列表项目的排序标准
+  (string-lessp (item-title x) (item-title y)))
+
+(defun all-items (sections);;从每个节点中获取项目
+  (let ((is nil))
+    (dolist (s sections)
+      (dolist (i (section-items s))
+        (setf is (merge 'list (list i) is #'title<))))
+    is))
+
+(defun gen-index (&optional (sections *sections*));;生成标题和链接列表，列表为有序列表，排序标准为title<
+  (page index index
+        (with ol
+              (dolist (i (all-items sections))
+                (link-item (item-id i) (item-title i))
+                (brs 2)))))
+
+(defun gen-move-buttons (back up forward);;创建指向左兄弟的后退按钮，指向右兄弟的前进按钮和指向双亲对象的向上按钮
+  (if back (button back "Back"))
+  (if up (button up "Up"))
+  (if forward (button forward "Forward")))
+
+(defun gen-item (sect item <item item>);;生成项
+  (page (item-id item) (item-title item)
+        (princ (item-text item))
+        (brs 3)
+        (gen-move-buttons (if <item (item-id <item))
+                          (section-id sect)
+                          (if item> (item-id item>)))))
+
+(defun gen-section (sect <sect sect>);;生成节点
+  (page (section-id sect) (section-title sect)
+        (with ol
+              (map3 #'(lambda (item <item item>)
+                        (link-item (item-id item)
+                                   (item-title item))
+                        (brs 2)
+                        (gen-item sect item <item item>))
+                    (section-items sect)))
+        (brs 3)
+        (gen-move-buttons (if <sect (section-id <sect))
+                          contents
+                          (if sect> (section-id sect>)))))
+
+(defun gen-site ();;生成整个页面集合，包括节点和项
+  (map3 #'gen-section *sections*)
+  (gen-contents)
+  (gen-index))
+
+(defitem des "Fortune Cookies: Dessert or Fraud?" "...")
+(defitem case "The Case for Pessimism" "...")
+(defsection position "Position Papers" des case)
+(defitem luck "Distribution of Bad Luck" "...")
+(defitem haz "Health Hazards of Optimism" "...")
+(defsection abstract "Research Abstracts" luck haz)
+(defsite position abstract)
+(gen-site);;以上都是用来生成一个饼干公司的微型网站
